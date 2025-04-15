@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-hover: #357abd;
+            --secondary-color: #2c3e50;
+            --background-color: #f0f7ff;
+            --background-gradient: linear-gradient(135deg, #e6f0ff 0%, #f0f7ff 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-color);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding: 1rem;
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .account-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--background-color);
+            border-radius: 0.5rem;
+        }
+
+        .status-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-disconnected {
+            background-color: var(--error-color);
+        }
+
+        .status-connected {
+            background-color: var(--success-color);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        input {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            width: 100%;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+            background-color: var(--background-color);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+        }
+
+        .error-message, .success-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fee2e2;
+        }
+
+        .success-message {
+            background-color: #f0fdf4;
+            color: var(--success-color);
+            border: 1px solid #dcfce7;
+        }
+
+        .transaction-history {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .transaction-history::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transaction-history::-webkit-scrollbar-track {
+            background: var(--background-color);
+            border-radius: 3px;
+        }
+
+        .transaction-history::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .transaction-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .transaction-item:hover {
+            background-color: var(--background-color);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .transaction-date {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .transaction-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .transaction-link:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .balance-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+
+        .address-display {
+            font-family: monospace;
+            background-color: var(--background-color);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .account-info {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Blockchain Bank</h1>
+            <div class="status">
+                <div id="connection-status" class="status-dot status-disconnected"></div>
+                <span id="connection-text">Disconnected</span>
+            </div>
+        </div>
+
+        <div class="account-info">
+            <div class="card">
+                <h2>Account Information</h2>
+                <p>Address: <span id="account-address" class="address-display">Not connected</span></p>
+                <p>Balance: <span id="balance" class="balance-display">0 ETH</span></p>
+                <button id="connect-wallet">Connect Wallet</button>
+            </div>
+
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions">
+                    <button id="create-account" disabled>Create Account</button>
+                    <button id="deposit" disabled>Deposit</button>
+                    <button id="withdraw" disabled>Withdraw</button>
+                </div>
+                <input type="number" id="amount" placeholder="Amount in ETH" step="0.0001" min="0.0001">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Transaction History</h2>
+            <div id="transaction-history" class="transaction-history">
+                <!-- Transactions will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="error-message" class="error-message" style="display: none;"></div>
+    <div id="success-message" class="success-message" style="display: none;"></div>
+
+    <!-- Load ethers.js from a reliable CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        // Simple MetaMask connection handler
+        async function connectWallet() {
+            try {
+                // Check if MetaMask is installed
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('Please install MetaMask to use this application!');
+                }
+
+                // Request account access
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                if (accounts.length === 0) {
+                    throw new Error('No accounts found. Please unlock MetaMask and try again.');
+                }
+
+                // Get the first account
+                const account = accounts[0];
+                
+                // Update UI
+                document.getElementById('account-address').textContent = 
+                    `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
+                
+                document.getElementById('connection-status').classList.remove('status-disconnected');
+                document.getElementById('connection-status').classList.add('status-connected');
+                
+                document.getElementById('connection-text').textContent = 'Connected';
+                
+                const connectButton = document.getElementById('connect-wallet');
+                connectButton.textContent = 'Connected';
+                connectButton.disabled = true;
+
+                // Initialize ethers provider
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+
+                // Get balance
+                const balance = await provider.getBalance(account);
+                const formattedBalance = ethers.utils.formatEther(balance);
+                document.getElementById('balance').textContent = `${formattedBalance} ETH`;
+
+                // Enable action buttons
+                document.getElementById('create-account').disabled = false;
+                document.getElementById('deposit').disabled = false;
+                document.getElementById('withdraw').disabled = false;
+
+                // Store provider and signer globally
+                window.provider = provider;
+                window.signer = signer;
+                window.account = account;
+
+                // Initialize contract
+                window.contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                // Listen for account changes
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                // Listen for chain changes
+                window.ethereum.on('chainChanged', () => window.location.reload());
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        // Handle account changes
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                // MetaMask is locked or the user has not connected any accounts
+                window.location.reload();
+            } else if (accounts[0] !== window.account) {
+                // Account changed
+                window.location.reload();
+            }
+        }
+
+        // Add transaction to history
+        function addTransactionToHistory(type, amount, hash) {
+            const transactionHistory = document.getElementById('transaction-history');
+            const transactionItem = document.createElement('div');
+            transactionItem.className = 'transaction-item';
+            
+            const date = new Date().toLocaleString();
+            transactionItem.innerHTML = `
+                <div>
+                    <span class="transaction-type">${type}</span>
+                    <span class="transaction-amount">${amount} ETH</span>
+                </div>
+                <div>
+                    <span class="transaction-date">${date}</span>
+                    <a href="https://sepolia.etherscan.io/tx/${hash}" target="_blank" style="margin-left: 10px;">View</a>
+                </div>
+            `;
+            
+            transactionHistory.insertBefore(transactionItem, transactionHistory.firstChild);
+        }
+
+        // Add click handler to connect button
+        document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+
+        // Contract ABI
+        const contractABI = [
+            {
+                "inputs": [],
+                "name": "createAccount",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "deposit",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getBalance",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        // Contract address (replace with your deployed contract address)
+        const contractAddress = "0x1234567890123456789012345678901234567890";
+
+        // Add event listeners for action buttons
+        document.getElementById('create-account').addEventListener('click', async () => {
+            try {
+                if (!window.signer) throw new Error('Please connect your wallet first');
+                const tx = await window.contract.createAccount();
+                await tx.wait();
+                addTransactionToHistory('Create Account', '0', tx.hash);
+                document.getElementById('success-message').textContent = 'Account created successfully!';
+                document.getElementById('success-message').style.display = 'block';
+            } catch (error) {
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+
+        document.getElementById('deposit').addEventListener('click', async () => {
+            try {
+                if (!window.signer) throw new Error('Please connect your wallet first');
+                const amount = document.getElementById('amount').value;
+                if (!amount || amount <= 0) {
+                    throw new Error('Please enter a valid amount (greater than 0)');
+                }
+                
+                const tx = await window.contract.deposit({
+                    value: ethers.utils.parseEther(amount.toString())
+                });
+                await tx.wait();
+                
+                // Update balance
+                const balance = await window.provider.getBalance(window.account);
+                const formattedBalance = ethers.utils.formatEther(balance);
+                document.getElementById('balance').textContent = `${formattedBalance} ETH`;
+                
+                addTransactionToHistory('Deposit', amount, tx.hash);
+                document.getElementById('success-message').textContent = `Successfully deposited ${amount} ETH`;
+                document.getElementById('success-message').style.display = 'block';
+            } catch (error) {
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+
+        document.getElementById('withdraw').addEventListener('click', async () => {
+            try {
+                if (!window.signer) throw new Error('Please connect your wallet first');
+                const amount = document.getElementById('amount').value;
+                if (!amount || amount <= 0) {
+                    throw new Error('Please enter a valid amount (greater than 0)');
+                }
+                
+                const tx = await window.contract.withdraw(ethers.utils.parseEther(amount.toString()));
+                await tx.wait();
+                
+                // Update balance
+                const balance = await window.provider.getBalance(window.account);
+                const formattedBalance = ethers.utils.formatEther(balance);
+                document.getElementById('balance').textContent = `${formattedBalance} ETH`;
+                
+                addTransactionToHistory('Withdraw', amount, tx.hash);
+                document.getElementById('success-message').textContent = `Successfully withdrew ${amount} ETH`;
+                document.getElementById('success-message').style.display = 'block';
+            } catch (error) {
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 
